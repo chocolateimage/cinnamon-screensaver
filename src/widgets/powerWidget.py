@@ -65,9 +65,9 @@ class PowerWidget(Gtk.Frame):
     def on_percentage_changed(self, client, battery):
         battery_path = battery.get_object_path()
 
-        for path, widget in self.path_widget_pairs:
+        for path, widget, percentlabel in self.path_widget_pairs:
             if path == battery_path:
-                self.update_battery_tooltip(widget, battery)
+                self.update_battery_tooltip(widget, percentlabel, battery)
                 break
 
     def construct_icons(self):
@@ -84,10 +84,11 @@ class PowerWidget(Gtk.Frame):
                     (path, gicon.to_string(), percentage))
 
             image = Gtk.Image.new_from_gicon(gicon, Gtk.IconSize.LARGE_TOOLBAR)
-            self.update_battery_tooltip(image, battery)
-
+            label = Gtk.Label()
+            self.update_battery_tooltip(image, label, battery)
             self.box.pack_start(image, False, False, 4)
-            self.path_widget_pairs.append((path, image))
+            self.box.pack_start(label, False, False, 4)
+            self.path_widget_pairs.append((path, image, label))
 
         self._should_show = True
         self.box.show_all()
@@ -138,7 +139,7 @@ class PowerWidget(Gtk.Frame):
 
         return Gio.ThemedIcon.new_from_names(names)
 
-    def update_battery_tooltip(self, widget, battery):
+    def update_battery_tooltip(self, widget, percentlabel, battery):
         text = ""
 
         try:
@@ -152,6 +153,7 @@ class PowerWidget(Gtk.Frame):
             pass
 
         widget.set_tooltip_text(text)
+        percentlabel.set_text(text)
 
     def should_show(self):
         return not self.power_client.full_and_on_ac_or_no_batteries()
